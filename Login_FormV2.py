@@ -1,10 +1,10 @@
+
 import streamlit as st
 from pymongo import MongoClient
 import os
 
 MONGO_URL = "mongodb+srv://shubhamdalal612:aXJogK6ewAHMyvA0@cluster0.a8ldobb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-client=MongoClient(MONGO_URL)
-
+client = MongoClient(MONGO_URL)
 
 db = client["Login_Form"]
 user_collection = db["login"]
@@ -22,10 +22,9 @@ def create_user(name, username, email, password):
     user_collection.insert_one({"name": name, "username": username, "email": email, "password": password})
     return True
 
-def upload_file(file_path):
-    with open(file_path, "r") as file:
-        file_data = file.read()
-    file_collection.insert_one({"filename": os.path.basename(file_path), "data": file_data})
+def upload_file(file_name, file_data):
+    file_content = file_data.decode("utf-8")
+    file_collection.insert_one({"filename": file_name, "data": file_content})
 
 st.set_page_config(page_title="Login App")
 
@@ -59,9 +58,12 @@ if st.session_state.Logged_in:
 
     with col2:
         st.subheader("Upload File to MongoDB")
-        if st.button("Upload to MongoDB"):
-            upload_file(file_path)
-            st.success("File uploaded to MongoDB successfully!")
+        uploaded_file = st.file_uploader("Choose a file")
+        if uploaded_file is not None:
+            if st.button("Upload to MongoDB"):
+                file_data = uploaded_file.read()
+                upload_file(uploaded_file.name, file_data)
+                st.success("File uploaded to MongoDB successfully!")
 
 else:
     tab = st.sidebar.radio("Select an option", ("Login", "SignUp"))
